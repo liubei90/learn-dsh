@@ -2,15 +2,41 @@
 
 > 一套面向"理解"的 DeepSeek Harness 项目分析：**先通俗、后精确**，覆盖系统架构、AI 开发规范、设计规范、模块明细与自迭代机制。
 
-本套文档基于仓库 `/home/liubei/deepseek-harness` 的 `master` 分支（提交 `d743267388`，包版本 `0.2.1-alpha.2`）撰写。所有技术论断均标注来源文件路径，可直接回到仓库核对。
+> **适用版本**：DeepSeek Harness `0.2.1-alpha.2`（`master` @ `d743267388`）· 核对日期 2026-10-12
+
+本套文档描述的是 DeepSeek Harness 的**一个具体版本快照**：项目处于 developer preview 且迭代很快，因此每篇文档顶部都标注了适用版本，所有技术论断也都标注了来源文件路径。
+
+## 一、适用版本（先看这里）
+
+| 项 | 值 |
+|---|---|
+| 适用版本 | `0.2.1-alpha.2` |
+| 核对基线 commit | `d743267388641bc76f17c45ce8b4c231aed1d32c`（`master`，提交日期 2026-10-09） |
+| 撰写 / 复核日期 | 2026-10-11 撰写，2026-10-12 复核 |
+| 上游 master 复核结果 | 2026-10-12 执行 `git ls-remote origin refs/heads/master`，仍为 `d743267388`，未发生漂移 |
+| 覆盖范围 | 16 篇分析 + 8 卷模块手册，覆盖 331 个包、52 个包组 |
+
+**为什么必须逐篇标注版本**：DSH 处于 developer preview，官方声明会有破坏性变更（来源：仓库 `README.md`、`AGENTS.md`）。本套文档的每条结论只对上面这个 commit 负责，版本推进后旧结论可能失效。
+
+**版本推进后如何自行核对**：
+
+```sh
+cd /path/to/deepseek-harness
+git log -1 --format='%H %ad %s' --date=short   # 当前 commit 与日期
+node -p "require('./package.json').version"    # 当前包版本
+git log --oneline d743267388..HEAD             # 本套文档基线之后的全部提交
+```
+
+核对优先级建议：**源码 > 生成目录（`docs/*-catalog.md`、`docs/module-graph.md`）> 子系统页（`docs/subsystems/`）> 叙述性文档（`docs/architecture.md`）**。本套文档按同一优先级撰写，并已记录 4 处上游叙述性文档与源码不一致之处（见第六节）。
 
 ---
 
-## 一、一页速览
+## 二、一页速览
 
 | 维度 | 结论 |
 |---|---|
 | 项目是什么 | DeepSeek AI 开源的 agent harness（`dsh`），"一切皆插件" |
+| 版本基线 | `0.2.1-alpha.2`（`master` @ `d743267388`）—— 详见第一节 |
 | 技术底座 | Cordis 插件框架（vendored）+ TypeScript/ESM + pnpm workspaces |
 | 规模 | 331 个 npm 包、52 个能力族、4 个应用入口（cli/web/desktop/desktop-host） |
 | 形态 | Web GUI（`dsh web`）、桌面应用（Electron）、CLI/无头、SDK、ACP |
@@ -21,7 +47,7 @@
 | 自迭代 | 运行时：`packages/extensions` 让模型检视 live 插件并挂载/卸载；仓库级：agent 改代码 → 生成器 → 门禁 → 快照 → 决策记忆 |
 | 风险提示 | developer preview，官方声明会有破坏性变更 |
 
-## 二、文档目录
+## 三、文档目录
 
 | 篇目 | 讲什么 | 适合谁 |
 |---|---|---|
@@ -46,7 +72,7 @@
 | [07 开发者接口与集成](04-模块说明/07-开发者接口与集成.md) | api / sdk / acp / boot |
 | [08 工程质量与支撑设施](04-模块说明/08-工程质量与支撑设施.md) | util / test-support / experimental / benchmarks / scripts / snapshots / vendor / native / python |
 
-## 三、三种阅读路线
+## 四、三种阅读路线
 
 **路线 A · 只想快速理解 DSH（约 1 小时）**
 `00 → 01 的前三节 → 06 附录术语表`
@@ -57,14 +83,14 @@
 **路线 C · 研究"自迭代 / AI 协作工程"（约 2 小时）**
 `00 → 05（全部）→ 02（Agent Notes 与门禁部分）→ 01（扩展点总表）`
 
-## 四、使用须知
+## 五、使用须知
 
 - **来源纪律**：每篇的技术结论都标注来源（`来源：path/to/file`）。若你发现某条与仓库不符，以仓库为准——仓库是唯一权威。
-- **时效性**：项目处于 developer preview，文档可能随版本变化。核对时先看 `git log` 与包版本。
+- **时效性**：每篇顶部都标注了适用版本（`0.2.1-alpha.2` / `d743267388`）。项目处于 developer preview，版本推进后请按第一节的核对顺序自行校验。
 - **不含的内容**：本套文档不复制仓库内的生成目录全文（config-catalog、persistence-catalog、module-graph 等），需要时请直接查原文。
 - **本篇与其他篇的关系**：本篇与 `00-项目全景` 是入口；`01/02/03` 是三大主干；`04` 是查阅手册；`05` 是收束；`06` 是工具书。
 
-## 五、核查与已知的“上游文档不一致点”
+## 六、核查与已知的“上游文档不一致点”
 
 本套文档写完后做了一轮独立核查：5 个互不相同的核查者各自打开仓库原文，对 16 篇中的约 400 条高风险断言（数字、包名、API 名、事件顺序、配置字段、门禁脚本）逐条比对，凡与仓库不符的用最小改动修正；另有 8 条根 `AGENTS.md` 规则被补入 [02-AI开发规范](02-AI开发规范.md) 的速查表。
 
